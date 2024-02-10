@@ -3,6 +3,8 @@ namespace App\Http\Controllers;
 
 use App\Models\Book;
 use Illuminate\Http\Request;
+use App\Models\Reservation;
+
 
 class BookController extends Controller
 {
@@ -66,4 +68,38 @@ public function update(Request $request, Book $book)
     return redirect()->route('books.edit', $book->id)->with('success', 'Livre mis à jour avec succès.');
 }
 
+
+public function reserver(Request $request, $id)
+{
+    $book = Book::findOrFail($id);
+    $user_id = auth()->id(); 
+    
+    Reservation::create([
+        'user_id' => $user_id,
+        'book_id' => $book->id,
+        'status' => true, 
+    ]);
+
+    $book->update(['status' => 'non_disponible']);
+
+    return redirect()->route('books.index')->with('success', 'Livre réservé avec succès.');
+}
+
+
+
+public function return(Request $request, $id)
+{
+    $book = Book::findOrFail($id);
+    $reservation = Reservation::where('book_id', $id)->where('status', true)->first();
+
+    if (!$reservation || $reservation->user_id != auth()->id()) {
+        return redirect()->route('books.index')->with('error', 'Cette réservation ne correspond pas à l\'utilisateur connecté.');
+    }
+
+    $reservation->update(['status' => false]); 
+    $book->update(['status' => 'disponible']);
+
+    return redirect()->route('books.index')->with('success', 'Livre retourné avec succès.');
+}
+    
 }

@@ -7,6 +7,12 @@ use Illuminate\Database\Eloquent\Model;
 
 class Book extends Model
 {
+  
+public function reservation()
+{
+    return $this->hasOne(Reservation::class);
+}
+
     public $timestamps = false;
     use HasFactory;
 
